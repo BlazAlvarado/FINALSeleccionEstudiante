@@ -4,46 +4,47 @@ import random
 
 from faker import Faker
 
-from src.logica.coleccion import Coleccion
-from src.modelo.album import Album,Medio
-from src.modelo.cancion import Cancion,AlbumCancion
-from src.modelo.interprete import Interprete
+from src.modelo.estudiantes import Estudiante
+from src.logica.coleccion_estudiante import *
 from src.modelo.declarative_base import Session
-from fake_providers import AlbumTituloProvider,AlbumAnioProvider,AlbumDescripcionProvider,AlbumMedioProvider
+from fake_providers import *
 
-class AlbumTestCaseFake(unittest.TestCase):
+class estudianteTestCaseFake(unittest.TestCase):
     def setUp ( self ) :
-        self.logica = Coleccion()
+        self.logica= Coleccion()
         self.session = Session ( )
         self.data_factory = Faker ( )
 
         # Generación de datos con libreria Faker
-        self.data_factory.add_provider ( AlbumTituloProvider )
-        self.data_factory.add_provider ( AlbumAnioProvider )
-        self.data_factory.add_provider ( AlbumDescripcionProvider )
-        self.data_factory.add_provider ( AlbumMedioProvider )
+        self.data_factory.add_provider ( idEstudianteProvider)
+        self.data_factory.add_provider(apellPaternoProvider)
+        self.data_factory.add_provider(apellMaternoProvider)
+        self.data_factory.add_provider(nombreProvider)
+        self.data_factory.add_provider(elegibleProvider)
+
 
         self.data=[]
-        self.albumes=[]
-        for i in range ( 0 , 1 ) :
+        self.estudiante=[]
+        for i in range ( 0 ) :
             self.data.append(
                 (
-                    self.data_factory.unique.albumTitulo ( ),
-                    self.data_factory.albumAnio ( ),
-                    self.data_factory.albumDescripcion ( ),
-                    self.data_factory.albumMedio ()
+                    self.data_factory.unique.idEstudiante( ),
+                    self.data_factory.apellPaterno ( ),
+                    self.data_factory.apellMaterno ( ),
+                    self.data_factory.nombre (),
+                    self.data_factory.elegible ()
                 )
             )
-            self.albumes.append(
-                Album(
-                    titulo = self.data[ -1 ][ 0 ] ,
-                    anio = self.data[ -1 ][ 1 ] ,
-                    descripcion = self.data[ -1 ][ 2 ] ,
-                    medio = self.data[ -1 ][ 3 ] ,
-                    canciones = [ ]
+            self.estudiante.append(
+                Estudiante(
+                    idEstudiante = self.data[ -1 ][ 0 ] ,
+                    apellPaterno = self.data[ -1 ][ 1 ] ,
+                    apellMaterno  = self.data[ -1 ][ 2 ] ,
+                    nombre = self.data[ -1 ][ 3 ] ,
+                    elegible =self.data[ -1 ][ 4 ]
                 )
             )
-            self.session.add ( self.albumes[ -1 ] )
+            self.session.add ( self.estudiante[ -1 ] )
 
         '''
             Persiste los objetos
@@ -56,43 +57,29 @@ class AlbumTestCaseFake(unittest.TestCase):
     def tearDown ( self ) :
         self.session = Session ( )
 
-        busqueda_album = self.session.query ( Album ).all ( )
-        for album in busqueda_album :
-            self.session.delete ( album )
+        busqueda_estudiante = self.session.query ( Estudiante ).all ( )
+        for estudiante in busqueda_estudiante :
+            self.session.delete ( estudiante )
 
         self.session.commit()
         self.session.close()
 
     def test_constructor ( self ) :
-        for album , dato in zip ( self.albumes , self.data ) :
-            self.assertEqual ( album.titulo , dato[ 0 ] )
-            self.assertEqual ( album.anio , dato[ 1 ] )
-            self.assertEqual ( album.descripcion , dato[ 2 ] )
-            self.assertEqual ( album.medio , dato[ 3 ] )
+        for estudiante , dato in zip ( self.estudiante , self.data ) :
+            self.assertEqual ( estudiante.idEstudiante , dato[ 0 ] )
+            self.assertEqual ( estudiante.apellPaterno , dato[ 1 ] )
+            self.assertEqual ( estudiante.apellMaterno , dato[ 2 ] )
+            self.assertEqual ( estudiante.nombre , dato[ 3 ] )
+            self.assertEqual(estudiante.elegible, dato[4])
 
-    def test_agregar_album ( self ) :
-        albumTitulo=self.data_factory.unique.albumTitulo ( )
-        albumAnio=self.data_factory.albumAnio ( )
-        albumDescripcion=self.data_factory.albumDescripcion ( )
-        albumMedio=self.data_factory.albumMedio()
 
-        resultado=self.logica.agregar_album(albumTitulo,albumAnio,albumDescripcion,albumMedio)
+    def test_agregar_estudiante(self):
+        idEstudiante = self.data_factory.unique.idEstudiante()
+        apellPaterno= self.data_factory.apellPaterno()
+        apellMaterno = self.data_factory.apellMaterno()
+        nombre = self.data_factory.nombre()
+        elegible = self.data_factory.elegible()
 
-        self.assertEqual ( resultado , True )
+        resultado = self.logica.agregar_estudiante(idEstudiante, apellPaterno, apellMaterno, nombre, elegible )
 
-    def test_agregar_album1 ( self ) :
-        self.data.append (
-            (
-                self.data_factory.unique.albumTitulo ( ) ,
-                self.data_factory.albumAnio ( ) ,
-                self.data_factory.albumDescripcion ( ),
-                self.data_factory.albumMedio()
-            )
-        )
-
-        resultado = self.logica.agregar_album (
-            titulo = self.data[ -1 ][ 0 ] ,
-            anio = self.data[ -1 ][ 1 ] ,
-            descripcion = self.data[ -1 ][ 2 ] ,
-            medio = self.data[ -1 ][ 3 ] )
-        self.assertEqual ( resultado , True )
+        self.assertEqual(resultado, True)
